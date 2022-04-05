@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2022-04-04 20:49:43
+ * @LastEditTime: 2022-04-05 17:52:58
  * @FilePath: /basic_library/log/include/log.h
  * @Description: 日志模块
  * 
@@ -17,6 +17,8 @@
 #include <mutex>
 #include <iostream>
 #include <vector>
+#include <list>
+#include <fstream>
 
 namespace why {
 
@@ -55,8 +57,40 @@ public:
     using ptr = std::shared_ptr<Logger>;
 
     Logger(const std::string &name = "root");
+
+    void Log(LogEvent::ptr event, LogLevel::Level level);
+
+    void AddAppender(LogAppender::ptr appender);
+
+    void DelAppender(LogAppender::ptr appender);
+
+    void ClearAppenders();
+
+    LogLevel::Level GetLogLevel() const { return m_level; }
+
+    void SetLogLevel(LogLevel::Level val) { m_level = val;}
+
+    const std::string& GetName() const { return m_name; }
+
+    void SetFormatter(LogFormatter::ptr val);
+
+    /**
+     * @description: 直接设置一个 pattern 给里面 Logger 里面的 formatter
+     */
+    void SetFormatter(const std::string &val);
+
+    LogFormatter::ptr GetFormatter();
 private:
+    static constexpr auto kKeyDefaultPattern = "%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n";
+
     std::string m_name;
+    LogLevel::Level m_level{LogLevel::DEBUG};
+    // 一个 Logger 会被多个线程共享，需要加锁
+    std::mutex m_mutex;
+    std::list<LogAppender::ptr> m_appenders;
+    LogFormatter::ptr m_formatter;
+    // 主日志器
+    Logger::ptr m_root{nullptr};
 };
 
 class LogEvent {
@@ -133,12 +167,12 @@ public:
      * @description: 按照 pattern 将格式化的日志信息输出到传出参数 str 中
      * @param {std::string} str: 传出参数
      */
-    void Format(LogEvent::ptr &event, std::string &str);
+    void Format(LogEvent::ptr event, std::string &str);
     
     /**
      * @description: 相同，输出到流中
      */
-    void Format(LogEvent::ptr &event, std::ostream &ofs);
+    void Format(LogEvent::ptr event, std::ostream &ofs);
 
 public:
     class FormatItem {
@@ -148,13 +182,13 @@ public:
         /**
          * @description: 将 Event 中自己这个 Item 所匹配的属性值输出到 ofs 中
          */
-        virtual void Format(LogEvent::ptr &event, std::ostream& os);
+        virtual void Format(LogEvent::ptr event, std::ostream& os);
     };
 
 private:
-    static constexpr auto kKeyDefaultPattern = "%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n";
     std::string m_pattern;
     std::vector<FormatItem::ptr> m_items;
+    bool m_error{false};
     
 };
 
@@ -166,9 +200,9 @@ public:
 
     virtual ~LogAppender();
 
-    virtual void Log(LogEvent::ptr &event, LogLevel::Level level) = 0;
+    virtual void Log(LogEvent::ptr event, LogLevel::Level level) = 0;
 
-    void SetFormatter(LogFormatter::ptr &val);
+    void SetFormatter(LogFormatter::ptr val);
 
     LogFormatter::ptr GetFormatter();
 
@@ -180,7 +214,7 @@ public:
 protected:
     LogLevel::Level m_level{LogLevel::DEBUG};
     bool m_hasFormatter{false};
-    // TODO: 这里的动作时间较短，后面需要改成自旋锁
+    // TODO: 这里的临界区的时间较短，后面需要改成自旋锁
     std::mutex m_mutex;
     LogFormatter::ptr m_formatter{nullptr};
 };
@@ -188,15 +222,27 @@ protected:
 class StdOutLogAppender : public LogAppender {
 public:
     using ptr = std::shared_ptr<StdOutLogAppender>;
-    void Log(LogEvent::ptr &event, LogLevel::Level level) override;
+    void Log(LogEvent::ptr event, LogLevel::Level level) override;
 };
 
 class FileLogAppender : public LogAppender {
 public:
     using ptr = std::shared_ptr<FileLogAppender>;
+    FileLogAppender(const std::string &filename);
+    void Log(LogEvent::ptr event, LogLevel::Level level) override;
+
+    /**
+     * @description: 重新打开日志文件
+     * @return {bool} 成功返回true
+     */
+    bool Reopen();
 private:
-
-
+    /// 文件路径
+    std::string m_filename;
+    /// 文件流
+    std::ofstream m_filestream;
+    /// 上次重新打开时间
+    uint64_t m_lastTime = 0;
 };
 
 };
