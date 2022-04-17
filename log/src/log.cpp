@@ -413,19 +413,24 @@ LogFormatter::ptr LogAppender::GetFormatter() {
 }
 
 void StdOutLogAppender::Log(LogEvent::ptr event, LogLevel::Level level) {
-    if (m_level >= level) {
+    if (level >= m_level) {
         std::lock_guard<std::mutex> lock(m_mutex);
-#ifdef ENABLE_C_STYLE_PRINT
-        
-#else
         m_formatter->Format(event, std::cout);
-#endif
     }
 }
 
 FileLogAppender::FileLogAppender(const std::string& filename)
     :m_filename(filename) {
     Reopen();
+}
+
+bool FileLogAppender::Reopen() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if(m_filestream) {
+        m_filestream.close();
+    }
+    m_filestream.open(m_filename, std::ios::app);
+    return m_filestream.is_open();
 }
 
 void FileLogAppender::Log(LogEvent::ptr event, LogLevel::Level level) {
