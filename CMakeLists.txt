@@ -11,5 +11,5 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-add_subdirectory(log)
+add_subdirectory(src/log)
 add_subdirectory(sample)

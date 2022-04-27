@@ -47,9 +47,10 @@ LogLevel::Level LogLevel::FromString(const std::string &level) {
     return LogLevel::UNKNOWN;
 }
 
-Logger::Logger(const std::string& name) : 
+Logger::Logger(const std::string& name, Logger::ptr root) : 
         m_name(name), 
-        m_formatter(std::make_shared<LogFormatter>(kKeyDefaultPattern)){
+        m_formatter(std::make_shared<LogFormatter>(kKeyDefaultPattern)),
+        m_root(root) {
 
 }
 
@@ -89,7 +90,7 @@ void Logger::ClearAppenders() {
     m_appenders.clear();
 }
 
-void Logger::SetFormatter(LogFormatter::ptr val) {
+void Logger::SetFormatter(const LogFormatter::ptr val) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (val) {
         m_formatter = val;
@@ -101,11 +102,34 @@ void Logger::SetFormatter(LogFormatter::ptr val) {
 
 void Logger::SetFormatter(const std::string &val) {
     auto formatter = std::make_shared<LogFormatter>(val);
+    if (formatter->IsError()) {
+        printf("SetFormatter for Logger:%s failed, pattern:%s is invalid\n", m_name.c_str(), val.c_str());
+        return;
+    }
     std::lock_guard<std::mutex> lock(m_mutex);
     m_formatter = formatter;
     for (auto &i : m_appenders) {
         i->SetFormatter(formatter);
     }
+}
+
+std::string Logger::ToYamlString() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    YAML::Node node;
+    node["name"] = m_name;
+    if(m_level != LogLevel::UNKNOWN) {
+        node["level"] = LogLevel::ToString(m_level);
+    }
+    if(m_formatter) {
+        node["formatter"] = m_formatter->GetPattern();
+    }
+
+    for(auto& i : m_appenders) {
+        node["appenders"].push_back(YAML::Load(i->ToYamlString()));
+    }
+    std::stringstream ss;
+    ss << node;
+    return ss.str();
 }
 
 LogFormatter::ptr Logger::GetFormatter() {
@@ -152,7 +176,7 @@ class LevelFormatItem : public LogFormatter::FormatItem {
 public:
     LevelFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
-        os << LogLevel::ToString(event->GetLogLevel());
+        os << LogLevel::ToString(event->GetLevel());
     }
 };
 
@@ -419,6 +443,21 @@ void StdOutLogAppender::Log(LogEvent::ptr event, LogLevel::Level level) {
     }
 }
 
+std::string StdOutLogAppender::ToYamlString() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    YAML::Node node;
+    node["type"] = "StdoutLogAppender";
+    if(m_level != LogLevel::UNKNOWN) {
+        node["level"] = LogLevel::ToString(m_level);
+    }
+    if(m_hasFormatter && m_formatter) {
+        node["formatter"] = m_formatter->GetPattern();
+    }
+    std::stringstream ss;
+    ss << node;
+    return ss.str();
+}
+
 FileLogAppender::FileLogAppender(const std::string& filename)
     :m_filename(filename) {
     Reopen();
@@ -446,5 +485,48 @@ void FileLogAppender::Log(LogEvent::ptr event, LogLevel::Level level) {
     }
 }
 
+std::string FileLogAppender::ToYamlString() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    YAML::Node node;
+    node["type"] = "FileLogAppender";
+    node["file"] = m_filename;
+    if(m_level != LogLevel::UNKNOWN) {
+        node["level"] = LogLevel::ToString(m_level);
+    }
+    if(m_hasFormatter && m_formatter) {
+        node["formatter"] = m_formatter->GetPattern();
+    }
+    std::stringstream ss;
+    ss << node;
+    return ss.str();
+}
 
-};
+LoggerManager::LoggerManager() : m_root(std::make_shared<Logger>(kKeyRootLoggerName)) {
+    m_root->AddAppender(std::make_shared<StdOutLogAppender>());
+    m_loggers[kKeyRootLoggerName] = m_root;
+}
+
+Logger::ptr LoggerManager::GetLogger(const std::string &name) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    auto iter = m_loggers.find(name);
+    if (iter != m_loggers.end()) {
+        return iter->second;
+    }
+
+    Logger::ptr logger = std::make_shared<Logger>(name, m_root);
+    m_loggers[name] = logger;
+    return logger;
+}
+
+std::string LoggerManager::ToYamlString() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    YAML::Node node;
+    for(auto& i : m_loggers) {
+        node.push_back(YAML::Load(i.second->ToYamlString()));
+    }
+    std::stringstream ss;
+    ss << node;
+    return ss.str();
+}
+
+}

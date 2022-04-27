@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2022-04-17 16:15:44
- * @FilePath: /basic_library/log/include/log.h
+ * @LastEditTime: 2022-04-27 15:27:12
+ * @FilePath: /basic_library/src/log/include/log.h
  * @Description: 日志模块
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -19,6 +19,52 @@
 #include <vector>
 #include <list>
 #include <fstream>
+#include <unordered_map>
+#include "common.h"
+
+/**
+ * @description: 以 fmt 方式向指定日志器写入日志的宏
+ */
+#define WHY_LOG_LEVEL(logger, level, fmt, ...)                                                          \
+    if (level >= logger->GetLevel()) {                                                                  \
+        auto event = std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, 0, "TEST"); \
+        event->Format(fmt, __VA_ARGS__);                                                                \
+        logger->Log(event, level);                                                                      \
+    }
+
+#define WHY_LOG_DEBUG(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::DEBUG, fmt, __VA_ARGS__)
+
+#define WHY_LOG_INFO(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::INFO, fmt, __VA_ARGS__)
+
+#define WHY_LOG_WARN(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::WARN, fmt, __VA_ARGS__)
+
+#define WHY_LOG_ERROR(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::ERROR, fmt, __VA_ARGS__)
+
+#define WHY_LOG_FATAL(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::FATAL, fmt, __VA_ARGS__)
+
+/**
+ * @description: 获取主日志器
+ */
+#define LOG_ROOT() LoggerManager::LoggerMgr::Instance()->GetRoot()
+
+/**
+ * @description: 获取name的日志器
+ */
+#define LOG_NAME(name) LoggerManager::LoggerMgr::Instance()->GetLogger(name)
+
+/**
+ * @description: 默认的日志宏，即直接向主日志器写入的宏
+ */
+
+#define LOG_DEBUG(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::DEBUG, fmt, __VA_ARGS__)
+
+#define LOG_INFO(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::INFO, fmt, __VA_ARGS__)
+
+#define LOG_WARN(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::WARN, fmt, __VA_ARGS__)
+
+#define LOG_ERROR(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::ERROR, fmt, __VA_ARGS__)
+
+#define LOG_FATAL(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::FATAL, fmt, __VA_ARGS__)
 
 namespace why {
 
@@ -77,7 +123,7 @@ public:
 
     std::shared_ptr<Logger> GetLogger() const { return m_logger; }
 
-    LogLevel::Level GetLogLevel() const { return m_level; }
+    LogLevel::Level GetLevel() const { return m_level; }
 
     /**
      * @description: 返回日志内容字符串流
@@ -131,6 +177,10 @@ public:
      */
     void Format(LogEvent::ptr event, std::ostream &ofs);
 
+    bool IsError() const { return m_error;}
+
+    std::string GetPattern() const { return m_pattern; }
+
 public:
     class FormatItem {
     public:
@@ -159,14 +209,19 @@ public:
 
     virtual void Log(LogEvent::ptr event, LogLevel::Level level) = 0;
 
-    void SetFormatter(LogFormatter::ptr val);
+    void SetFormatter(const LogFormatter::ptr val);
 
     LogFormatter::ptr GetFormatter();
 
-    LogLevel::Level GetLogLevel() const { return m_level; }
+    LogLevel::Level GetLevel() const { return m_level; }
 
     // 为何 level 的访问不加锁
     void SetLogLevel(LogLevel::Level val) { m_level = val; }
+
+    /**
+     * @description: 将日志输出目标的配置转成YAML String
+     */
+    virtual std::string ToYamlString() = 0;
     
 protected:
     LogLevel::Level m_level{LogLevel::DEBUG};
@@ -183,7 +238,7 @@ class Logger {
 public:
     using ptr = std::shared_ptr<Logger>;
 
-    Logger(const std::string &name = "root");
+    Logger(const std::string &name, Logger::ptr root = nullptr);
 
     void Log(LogEvent::ptr event, LogLevel::Level level);
 
@@ -193,7 +248,7 @@ public:
 
     void ClearAppenders();
 
-    LogLevel::Level GetLogLevel() const { return m_level; }
+    LogLevel::Level GetLevel() const { return m_level; }
 
     void SetLogLevel(LogLevel::Level val) { m_level = val;}
 
@@ -207,6 +262,8 @@ public:
     void SetFormatter(const std::string &val);
 
     LogFormatter::ptr GetFormatter();
+
+    std::string ToYamlString();
 private:
     static constexpr auto kKeyDefaultPattern = "%d{%Y-%m-%d %H:%M:%S}%T%t%T%N%T%F%T[%p]%T[%c]%T%f:%l%T%m%n";
 
@@ -224,6 +281,7 @@ class StdOutLogAppender : public LogAppender {
 public:
     using ptr = std::shared_ptr<StdOutLogAppender>;
     void Log(LogEvent::ptr event, LogLevel::Level level) override;
+    std::string ToYamlString() override;
 };
 
 class FileLogAppender : public LogAppender {
@@ -231,6 +289,7 @@ public:
     using ptr = std::shared_ptr<FileLogAppender>;
     FileLogAppender(const std::string &filename);
     void Log(LogEvent::ptr event, LogLevel::Level level) override;
+    std::string ToYamlString() override;
 
     /**
      * @description: 重新打开日志文件
@@ -246,7 +305,32 @@ private:
     uint64_t m_lastTime = 0;
 };
 
+class LoggerManager {
+public:
+    using LoggerMgr = why::Singleton<LoggerManager>;
+    LoggerManager();
+
+    /**
+     * @description: 获取指定名称的 Logger,没有就创建一个对应名字的 Logger
+     */
+    Logger::ptr GetLogger(const std::string &name);
+
+    Logger::ptr GetRoot() const { return m_root;}
+
+    /**
+     * @description: 将所有的日志器配置转成YAML String
+     */
+    std::string ToYamlString();
+private:
+    static constexpr auto kKeyRootLoggerName = "root";
+    std::mutex m_mutex;
+    // 日志器容器
+    std::unordered_map<std::string, Logger::ptr> m_loggers;
+    // 主日志器
+    Logger::ptr m_root;
 };
+
+}
 
 
 
