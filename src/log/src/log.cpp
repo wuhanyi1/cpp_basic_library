@@ -2,9 +2,11 @@
 
 #include <stdarg.h>
 #include <cstdio>
+#include <cstring>
 #include <time.h>
 #include <unordered_map>
 #include <functional>
+#include <yaml-cpp/yaml.h>
 
 using namespace why;
 
@@ -170,6 +172,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetContent();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        const std::string cur_str = std::move(event->GetContent());
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
+    }
 };
 
 class LevelFormatItem : public LogFormatter::FormatItem {
@@ -177,6 +187,14 @@ public:
     LevelFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << LogLevel::ToString(event->GetLevel());
+    }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::string cur_str = LogLevel::ToString(event->GetLevel());
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
     }
 };
 
@@ -186,6 +204,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetElapse();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::string cur_str = std::move(std::to_string(event->GetElapse()));
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
+    }
 };
 
 class NameFormatItem : public LogFormatter::FormatItem {
@@ -193,6 +219,14 @@ public:
     NameFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetLogger()->GetName();
+    }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        const std::string &cur_str = event->GetLogger()->GetName();
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
     }
 };
 
@@ -202,6 +236,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetThreadId();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::string cur_str = std::move(std::to_string(event->GetThreadId()));
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
+    }
 };
 
 class FiberIdFormatItem : public LogFormatter::FormatItem {
@@ -210,6 +252,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetFiberId();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::string cur_str = std::move(std::to_string(event->GetFiberId()));
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
+    }
 };
 
 class ThreadNameFormatItem : public LogFormatter::FormatItem {
@@ -217,6 +267,14 @@ public:
     ThreadNameFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetThreadName();
+    }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        const std::string &cur_str = event->GetThreadName();
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
     }
 };
 
@@ -234,9 +292,20 @@ public:
         struct tm tm;
         time_t time = event->GetTimeStamp();
         localtime_r(&time, &tm);
-        char buf[64];
+        char buf[64]{};
         strftime(buf, sizeof(buf), m_format.c_str(), &tm);
         os << buf;
+    }
+
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::stringstream ss;
+        Format(event, ss);
+        std::string cur_str = std::move(ss.str());
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
     }
 private:
     std::string m_format;
@@ -248,6 +317,16 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetFileName();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        const char* cur_str = event->GetFileName();
+        int len = strlen(cur_str);
+        str += event->GetFileName();
+        if (len + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, cur_str, len);
+        pos += len;
+    }
 };
 
 class LineFormatItem : public LogFormatter::FormatItem {
@@ -256,6 +335,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << event->GetLine();
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        std::string cur_str = std::move(std::to_string(event->GetLine()));
+        if (cur_str.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &cur_str[0], cur_str.size());
+        pos += cur_str.size();
+    }
 };
 
 class NewLineFormatItem : public LogFormatter::FormatItem {
@@ -263,6 +350,13 @@ public:
     NewLineFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << std::endl;
+    }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        if (1 + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memset(&str[0] + pos, '\n', 1);
+        pos += 1;
     }
 };
 
@@ -274,6 +368,14 @@ public:
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << m_string;
     }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        str += m_string;
+        if (m_string.size() + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memcpy(&str[0] + pos, &m_string[0], m_string.size());
+        pos += m_string.size();
+    }
 private:
     std::string m_string;
 };
@@ -283,6 +385,13 @@ public:
     TabFormatItem(const std::string& str = "") {}
     void Format(LogEvent::ptr event, std::ostream &os) override {
         os << "\t";
+    }
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos) override {
+        if (1 + pos > str.size()) {
+            str.resize(2 * str.size());
+        }
+        memset(&str[0] + pos, '\t', 1);
+        pos += 1;
     }
 private:
     std::string m_string;
@@ -351,6 +460,8 @@ void LogFormatter::Parse() {
                 if (format_str.empty()) {
                     format_str += m_pattern.substr(i + 1);
                 }
+                // 此时 m_pattern[n] 已经被处理过了,否则下次 i++ == n,会把这个字符当 normal string
+                i = n;
             }
         }
         // 为 0，说明模式串正常处理完毕
@@ -411,10 +522,10 @@ void LogFormatter::Parse() {
     }
 }
 
-void LogFormatter::Format(LogEvent::ptr event,  std::string &str) {
-    std::stringstream ss;
-    Format(event, ss);
-    str = ss.str();
+void LogFormatter::Format(LogEvent::ptr event,  std::string &str, size_t &pos) {
+    for (auto &item : m_items) {
+        item->Format(event, str, pos);
+    }
 }
 
 void LogFormatter::Format(LogEvent::ptr event,  std::ostream &ofs) {
@@ -499,6 +610,18 @@ std::string FileLogAppender::ToYamlString() {
     std::stringstream ss;
     ss << node;
     return ss.str();
+}
+
+LogEventWrap::LogEventWrap(LogEvent::ptr e)
+    :m_event(e) {
+}
+
+LogEventWrap::~LogEventWrap() {
+    m_event->GetLogger()->Log(m_event, m_event->GetLevel());
+}
+
+std::stringstream& LogEventWrap::GetSS() {
+    return m_event->GetSS();
 }
 
 LoggerManager::LoggerManager() : m_root(std::make_shared<Logger>(kKeyRootLoggerName)) {

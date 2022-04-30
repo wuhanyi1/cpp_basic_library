@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2022-04-27 15:27:12
+ * @LastEditTime: 2022-04-29 19:49:39
  * @FilePath: /basic_library/src/log/include/log.h
  * @Description: 日志模块
  * 
@@ -22,14 +22,28 @@
 #include <unordered_map>
 #include "common.h"
 
+#define WHY_LOG_LEVEL_WITH_STREAM(logger, level) \
+    if (logger->GetLevel() <= level) \
+        LogEventWrap(std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, GetCurrentSec(), "TEST")).GetSS()
+
+#define WHY_LOG_DEBUG_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::DEBUG)
+
+#define WHY_LOG_INFO_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::INFO)
+
+#define WHY_LOG_WARN_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::WARN)
+
+#define WHY_LOG_ERROR_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::ERROR)
+
+#define WHY_LOG_FATAL_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::FATAL)
+
 /**
  * @description: 以 fmt 方式向指定日志器写入日志的宏
  */
-#define WHY_LOG_LEVEL(logger, level, fmt, ...)                                                          \
-    if (level >= logger->GetLevel()) {                                                                  \
-        auto event = std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, 0, "TEST"); \
-        event->Format(fmt, __VA_ARGS__);                                                                \
-        logger->Log(event, level);                                                                      \
+#define WHY_LOG_LEVEL(logger, level, fmt, ...)                                                                        \
+    if (level >= logger->GetLevel()) {                                                                                \
+        auto event = std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, GetCurrentSec(), "TEST"); \
+        event->Format(fmt, __VA_ARGS__);                                                                              \
+        logger->Log(event, level);                                                                                    \
     }
 
 #define WHY_LOG_DEBUG(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::DEBUG, fmt, __VA_ARGS__)
@@ -45,12 +59,12 @@
 /**
  * @description: 获取主日志器
  */
-#define LOG_ROOT() LoggerManager::LoggerMgr::Instance()->GetRoot()
+#define LOG_ROOT() LoggerManager::LoggerMgr::Instance().GetRoot()
 
 /**
  * @description: 获取name的日志器
  */
-#define LOG_NAME(name) LoggerManager::LoggerMgr::Instance()->GetLogger(name)
+#define LOG_NAME(name) LoggerManager::LoggerMgr::Instance().GetLogger(name)
 
 /**
  * @description: 默认的日志宏，即直接向主日志器写入的宏
@@ -119,7 +133,7 @@ public:
 
     const std::string& GetThreadName() const { return m_threadName; }
 
-    std::string GetContent() const { return m_ss.str(); }
+    const std::string GetContent() const { return m_ss.str(); }
 
     std::shared_ptr<Logger> GetLogger() const { return m_logger; }
 
@@ -168,9 +182,9 @@ public:
     
     /**
      * @description: 按照 pattern 将格式化的日志信息输出到传出参数 str 中
-     * @param {std::string} str: 传出参数
+     * @param[out] str: 传出参数
      */
-    void Format(LogEvent::ptr event, std::string &str);
+    void Format(LogEvent::ptr event, std::string &str, size_t &pos);
     
     /**
      * @description: 相同，输出到流中
@@ -189,7 +203,14 @@ public:
         /**
          * @description: 将 Event 中自己这个 Item 所匹配的属性值输出到 ofs 中
          */
-        virtual void Format(LogEvent::ptr event, std::ostream& os) = 0;
+        virtual void Format(LogEvent::ptr event, std::ostream &os) = 0;
+
+        /**
+         * @description: 相同,不过这里用 std::string 来接收
+         * @param[out] str: 传出参数,保存信息的字符串
+         * @param[in] pos: 即字符串当前可以写入的位置,会在函数内部被修改
+         */
+        virtual void Format(LogEvent::ptr event, std::string &str, size_t &pos) = 0;
     };
 
 private:
@@ -303,6 +324,25 @@ private:
     std::ofstream m_filestream;
     /// 上次重新打开时间
     uint64_t m_lastTime = 0;
+};
+
+/**
+ * @description: 日志事件包装器
+ */
+class LogEventWrap {
+public:
+    LogEventWrap(LogEvent::ptr e);
+
+    ~LogEventWrap();
+
+    LogEvent::ptr GetEvent() const { return m_event; }
+
+    /**
+     * @description: 获取日志内容流
+     */
+    std::stringstream& GetSS();
+private:
+    LogEvent::ptr m_event;
 };
 
 class LoggerManager {

@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-26 15:08:04
- * @LastEditTime: 2022-04-26 15:32:15
- * @FilePath: /basic_library/src/common/include/error.h
+ * @LastEditTime: 2022-04-29 21:57:20
+ * @FilePath: /basic_library/src/common/include/common/error.h
  * @Description: 
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -12,11 +12,11 @@
 
 namespace why {
 
-#ifndef ENABLE_EXCEPTION
+// #ifndef ENABLE_EXCEPTION
 #define THROW(e) throw(e)
-#else
-#define THROW(e) std::abort()
-#endif
+// #else
+// #define THROW(e) std::abort()
+// #endif
 
 #ifdef ENABLE_GCC_BUILTIN
 #define LIKELY(x) __builtin_expect(!!(x), 1)
@@ -26,11 +26,11 @@ namespace why {
 #define UNLIKELY(x) x
 #endif
 
-#define CHECK_THROW(cond, fail, ...)        \
-    do {                                    \
-        if (LIKELY(cond) == 0) {            \
-            THROW(fail, __VA_ARGS__)        \
-        }                                   \
+#define CHECK_THROW(cond, ...)                          \
+    do {                                                \
+        if (LIKELY(cond) == 0) {                        \
+            THROW(Exception(__VA_ARGS__));              \
+        }                                               \
     } while(0)                              
 
 }

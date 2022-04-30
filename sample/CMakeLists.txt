@@ -9,7 +9,7 @@ foreach(SAMPLE_SOURCE ${source})
     add_executable(${SAMPLE_NAME} ${SAMPLE_SOURCE})
 
     if (${SAMPLE_NAME} STREQUAL "log_sample")
-        target_link_libraries(${SAMPLE_NAME} PRIVATE log)
+        target_link_libraries(${SAMPLE_NAME} PRIVATE log pthread)
     endif()
     
 endforeach()
