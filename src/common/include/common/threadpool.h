@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-29 21:29:37
- * @LastEditTime: 2022-04-30 16:19:11
+ * @LastEditTime: 2022-05-02 13:26:43
  * @FilePath: /basic_library/src/common/include/common/threadpool.h
  * @Description: 线程池
  * 
@@ -31,6 +31,8 @@ public:
     using TaskPtr = std::shared_ptr<Task>;
     
     ThreadPool(int size = 0);
+
+    ~ThreadPool();
 
     void Start();
 

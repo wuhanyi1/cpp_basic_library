@@ -8,6 +8,12 @@ ThreadPool::ThreadPool(int size) : m_threadNum(size) {
     }
 }
 
+ThreadPool::~ThreadPool() {
+    if (!m_isTerminate) {
+        Shutdown();
+    }
+}
+
 void ThreadPool::Start() {
     std::lock_guard<std::mutex> lock(m_threadMtx);
     CHECK_THROW(m_threads.empty(), "m_threads not empty");

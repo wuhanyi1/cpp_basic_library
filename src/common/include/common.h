@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-26 18:17:59
- * @LastEditTime: 2022-04-30 16:27:32
+ * @LastEditTime: 2022-05-02 21:23:16
  * @FilePath: /basic_library/src/common/include/common.h
  * @Description: 
  * 
@@ -16,5 +16,6 @@
 #include "common/singleton.h"
 #include "common/utils.h"
 #include "common/threadpool.h"
+#include "common/timer.h"
 
 #endif

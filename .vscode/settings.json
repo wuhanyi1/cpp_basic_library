@@ -63,6 +63,7 @@
         "variant": "cpp",
         "strstream": "cpp",
         "source_location": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "future": "cpp"
     }
 }
