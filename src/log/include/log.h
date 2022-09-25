@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2022-04-29 19:49:39
+ * @LastEditTime: 2022-05-06 20:12:13
  * @FilePath: /basic_library/src/log/include/log.h
  * @Description: 日志模块
  * 
@@ -39,22 +39,22 @@
 /**
  * @description: 以 fmt 方式向指定日志器写入日志的宏
  */
-#define WHY_LOG_LEVEL(logger, level, fmt, ...)                                                                        \
+#define WHY_LOG_LEVEL(logger, level, ...)                                                                        \
     if (level >= logger->GetLevel()) {                                                                                \
         auto event = std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, GetCurrentSec(), "TEST"); \
-        event->Format(fmt, __VA_ARGS__);                                                                              \
+        event->Format(__VA_ARGS__);                                                                              \
         logger->Log(event, level);                                                                                    \
     }
 
-#define WHY_LOG_DEBUG(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::DEBUG, fmt, __VA_ARGS__)
+#define WHY_LOG_DEBUG(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::DEBUG, __VA_ARGS__)
 
-#define WHY_LOG_INFO(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::INFO, fmt, __VA_ARGS__)
+#define WHY_LOG_INFO(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::INFO, __VA_ARGS__)
 
-#define WHY_LOG_WARN(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::WARN, fmt, __VA_ARGS__)
+#define WHY_LOG_WARN(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::WARN, __VA_ARGS__)
 
-#define WHY_LOG_ERROR(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::ERROR, fmt, __VA_ARGS__)
+#define WHY_LOG_ERROR(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::ERROR, __VA_ARGS__)
 
-#define WHY_LOG_FATAL(logger, fmt, ...) WHY_LOG_LEVEL(logger, LogLevel::FATAL, fmt, __VA_ARGS__)
+#define WHY_LOG_FATAL(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::FATAL, __VA_ARGS__)
 
 /**
  * @description: 获取主日志器
@@ -70,15 +70,15 @@
  * @description: 默认的日志宏，即直接向主日志器写入的宏
  */
 
-#define LOG_DEBUG(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::DEBUG, fmt, __VA_ARGS__)
+#define LOG_DEBUG(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::DEBUG, __VA_ARGS__)
 
-#define LOG_INFO(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::INFO, fmt, __VA_ARGS__)
+#define LOG_INFO(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::INFO, __VA_ARGS__)
 
-#define LOG_WARN(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::WARN, fmt, __VA_ARGS__)
+#define LOG_WARN(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::WARN, __VA_ARGS__)
 
-#define LOG_ERROR(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::ERROR, fmt, __VA_ARGS__)
+#define LOG_ERROR(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::ERROR, __VA_ARGS__)
 
-#define LOG_FATAL(fmt, ...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::FATAL, fmt, __VA_ARGS__)
+#define LOG_FATAL(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::FATAL, __VA_ARGS__)
 
 namespace why {
 

@@ -1,3 +1,6 @@
 [submodule "thirdparty/yaml-cpp"]
 	path = thirdparty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "thirdparty/rpclib"]
+	path = thirdparty/rpclib
+	url = https://github.com/rpclib/rpclib.git

@@ -42,7 +42,7 @@ int main() {
         auto timer = std::make_shared<Timer::TimerQueue>(4);
         timer->Start();
 
-        LOG_INFO("Now", 0);
+        LOG_INFO("Now");
         // std::chrono::steady_clock::time_point tt = std::chrono::steady_clock::now() + std::chrono::seconds(2);
         // timer->AddTaskAtTimePoint(tt, test_func2);
         auto dul = std::chrono::seconds(2);

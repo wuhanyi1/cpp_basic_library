@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-29 10:45:10
- * @LastEditTime: 2022-04-29 15:30:36
+ * @LastEditTime: 2022-05-12 17:19:44
  * @FilePath: /basic_library/src/common/include/common/utils.h
  * @Description: 
  * 
@@ -57,6 +57,11 @@ public:
     static bool OpenForWrite(std::ofstream& ofs, const std::string& filename
                     ,std::ios_base::openmode mode);
 };
+
+template<typename type, typename Deleter, typename ...Args>
+std::shared_ptr<type> make_shared_with_deleter(Deleter&& func, Args&& ...args) {
+    return std::shared_ptr<type>(new type(std::forward<Args>(args)...), std::forward<Deleter>(func));
+}
 
 }
 

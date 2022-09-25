@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-29 16:19:45
- * @LastEditTime: 2022-05-04 14:08:45
+ * @LastEditTime: 2022-05-05 20:32:14
  * @FilePath: /basic_library/src/common/include/common/timer.h
  * @Description: 
  * 
@@ -26,6 +26,8 @@ namespace Timer {
     
 class TimerQueue : public std::enable_shared_from_this<TimerQueue>, public Noncopyable {
 public:
+    using ptr = std::shared_ptr<TimerQueue>;
+
     template<typename T, typename R>
     using Duration = std::chrono::duration<T, R>;
 
