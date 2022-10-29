@@ -81,9 +81,15 @@ private:
     // 传给 demon 线程时，这里要用 enable_for_this,因为这是 demon 线程执行的函数,不受控制
     void LocalRun();
 
+    struct cmp {
+        bool operator()(const TaskPtr t1, const TaskPtr t2) {
+            return t1->timepoint < t2->timepoint;
+        }
+    };
+
 private:
     std::mutex m_taskMtx;
-    std::set<TaskPtr> m_tasks; 
+    std::set<TaskPtr, cmp> m_tasks; 
     ThreadPool m_threadPool;
     std::condition_variable m_cv;
 

@@ -44,19 +44,22 @@ void TimerQueue::LocalRun() {
             return;
         }
         CHECK_THROW((m_tasks.empty() == false), "m_task is empty");
-        while (!m_tasks.empty()) {
-            auto task = m_tasks.begin();
-            // m_tasks.erase(task);
-            auto diff = (*task)->timepoint - std::chrono::steady_clock::now();
-            auto taskptr = *task;
-            if (std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count() > 0) {
-                m_threadPool.execute([taskptr] {
-                    std::this_thread::sleep_until(taskptr->timepoint);
-                    taskptr->func();
-                });
+        if (!m_tasks.empty()) {
+            auto now = std::chrono::steady_clock::now();
+            for (auto task = m_tasks.begin(); task != m_tasks.end(); task++) {
+                auto diff = (*task)->timepoint - now;
+                auto taskptr = *task;
+                if (std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count() > 0) {
+                    // std::cout << std::chrono::duration_cast<std::chrono::seconds>(diff).count() << std::endl;
+                    m_threadPool.execute([taskptr] {
+                        std::this_thread::sleep_until(taskptr->timepoint);
+                        taskptr->func();
+                    });
+                }
             }
-            m_tasks.erase(task);   
+            m_tasks.clear();
         }
+        
         // 唤醒可能因为调用 Shutdown 阻塞在 m_cv 上的线程
         m_cv.notify_all();
     }
