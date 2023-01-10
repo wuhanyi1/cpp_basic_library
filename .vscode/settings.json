@@ -64,6 +64,16 @@
         "strstream": "cpp",
         "source_location": "cpp",
         "cinttypes": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "bitset": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "regex": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "*.ipp": "cpp"
     }
 }

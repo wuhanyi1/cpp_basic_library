@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2022-05-06 20:12:13
- * @FilePath: /basic_library/src/log/include/log.h
+ * @LastEditTime: 2023-01-08 11:40:57
+ * @FilePath: /cpp_basic_library/src/log/log.h
  * @Description: 日志模块
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -22,63 +22,66 @@
 #include <unordered_map>
 #include "common.h"
 
+/**
+ * @brief 使用流式方式将 level 级别的日志写入到 logger
+ */
 #define WHY_LOG_LEVEL_WITH_STREAM(logger, level) \
     if (logger->GetLevel() <= level) \
-        LogEventWrap(std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, GetCurrentSec(), "TEST")).GetSS()
+        why::LogEventWrap(std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, why::GetCurrentSec(), "TEST")).GetSS()
 
-#define WHY_LOG_DEBUG_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::DEBUG)
+#define WHY_LOG_DEBUG_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::DEBUG)
 
-#define WHY_LOG_INFO_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::INFO)
+#define WHY_LOG_INFO_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::INFO)
 
-#define WHY_LOG_WARN_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::WARN)
+#define WHY_LOG_WARN_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::WARN)
 
-#define WHY_LOG_ERROR_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::ERROR)
+#define WHY_LOG_ERROR_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::ERROR)
 
-#define WHY_LOG_FATAL_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, LogLevel::FATAL)
+#define WHY_LOG_FATAL_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::FATAL)
 
 /**
  * @description: 以 fmt 方式向指定日志器写入日志的宏
  */
 #define WHY_LOG_LEVEL(logger, level, ...)                                                                        \
     if (level >= logger->GetLevel()) {                                                                                \
-        auto event = std::make_shared<LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, GetCurrentSec(), "TEST"); \
+        auto event = std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, why::GetCurrentSec(), "TEST"); \
         event->Format(__VA_ARGS__);                                                                              \
         logger->Log(event, level);                                                                                    \
     }
 
-#define WHY_LOG_DEBUG(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::DEBUG, __VA_ARGS__)
+#define WHY_LOG_DEBUG(logger, ...) WHY_LOG_LEVEL(logger, why::LogLevel::DEBUG, __VA_ARGS__)
 
-#define WHY_LOG_INFO(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::INFO, __VA_ARGS__)
+#define WHY_LOG_INFO(logger, ...) WHY_LOG_LEVEL(logger, why::LogLevel::INFO, __VA_ARGS__)
 
-#define WHY_LOG_WARN(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::WARN, __VA_ARGS__)
+#define WHY_LOG_WARN(logger, ...) WHY_LOG_LEVEL(logger, why::LogLevel::WARN, __VA_ARGS__)
 
-#define WHY_LOG_ERROR(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::ERROR, __VA_ARGS__)
+#define WHY_LOG_ERROR(logger, ...) WHY_LOG_LEVEL(logger, why::LogLevel::ERROR, __VA_ARGS__)
 
-#define WHY_LOG_FATAL(logger, ...) WHY_LOG_LEVEL(logger, LogLevel::FATAL, __VA_ARGS__)
+#define WHY_LOG_FATAL(logger, ...) WHY_LOG_LEVEL(logger, why::LogLevel::FATAL, __VA_ARGS__)
 
 /**
  * @description: 获取主日志器
  */
-#define LOG_ROOT() LoggerManager::LoggerMgr::Instance().GetRoot()
+#define LOG_ROOT() why::LoggerManager::LoggerMgr::Instance().GetRoot()
 
 /**
  * @description: 获取name的日志器
  */
-#define LOG_NAME(name) LoggerManager::LoggerMgr::Instance().GetLogger(name)
+#define LOG_NAME(name) why::LoggerManager::LoggerMgr::Instance().GetLogger(name)
 
 /**
  * @description: 默认的日志宏，即直接向主日志器写入的宏
  */
 
-#define LOG_DEBUG(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::DEBUG, __VA_ARGS__)
+#define LOG_DEBUG(...) WHY_LOG_LEVEL(LOG_ROOT(), why::LogLevel::DEBUG, __VA_ARGS__)
 
-#define LOG_INFO(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::INFO, __VA_ARGS__)
+#define LOG_INFO(...) WHY_LOG_LEVEL(LOG_ROOT(), why::LogLevel::INFO, __VA_ARGS__)
 
-#define LOG_WARN(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::WARN, __VA_ARGS__)
+#define LOG_WARN(...) WHY_LOG_LEVEL(LOG_ROOT(), why::LogLevel::WARN, __VA_ARGS__)
 
-#define LOG_ERROR(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::ERROR, __VA_ARGS__)
+#define LOG_ERROR(...) WHY_LOG_LEVEL(LOG_ROOT(), why::LogLevel::ERROR, __VA_ARGS__)
 
-#define LOG_FATAL(...) WHY_LOG_LEVEL(LOG_ROOT(), LogLevel::FATAL, __VA_ARGS__)
+#define LOG_FATAL(...) WHY_LOG_LEVEL(LOG_ROOT(), why::LogLevel::FATAL, __VA_ARGS__)
 
 namespace why {
 
@@ -221,6 +224,7 @@ private:
 };
 
 class LogAppender {
+friend class Logger;    
 public:
     using ptr = std::shared_ptr<LogAppender>;
 
@@ -345,22 +349,28 @@ private:
     LogEvent::ptr m_event;
 };
 
-class LoggerManager {
+class LoggerManager : public Noncopyable {
 public:
     using LoggerMgr = why::Singleton<LoggerManager>;
-    LoggerManager();
+    friend LoggerMgr;
 
     /**
      * @description: 获取指定名称的 Logger,没有就创建一个对应名字的 Logger
      */
     Logger::ptr GetLogger(const std::string &name);
 
-    Logger::ptr GetRoot() const { return m_root;}
+    Logger::ptr GetRoot() const { return m_root; }
+
+    void DelLogger(const std::string &name);
 
     /**
      * @description: 将所有的日志器配置转成YAML String
      */
     std::string ToYamlString();
+
+private:
+    LoggerManager();
+
 private:
     static constexpr auto kKeyRootLoggerName = "root";
     std::mutex m_mutex;

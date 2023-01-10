@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-26 20:03:15
- * @LastEditTime: 2022-05-05 20:22:41
- * @FilePath: /basic_library/src/common/include/common/singleton.h
+ * @LastEditTime: 2023-01-02 22:10:14
+ * @FilePath: /cpp_basic_library/src/common/include/common/singleton.h
  * @Description: 
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -12,7 +12,7 @@
 
 #include "noncopyable.h"
 
-namespace why {
+namespace why {    
 
 /**
  * @description: 单例模式封装类

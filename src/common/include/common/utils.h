@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-29 10:45:10
- * @LastEditTime: 2022-05-12 17:19:44
- * @FilePath: /basic_library/src/common/include/common/utils.h
+ * @LastEditTime: 2023-01-02 16:37:46
+ * @FilePath: /cpp_basic_library/src/common/include/common/utils.h
  * @Description: 
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <yaml-cpp/yaml.h>
 #include <iostream>
+#include <memory>
 
 namespace why {
 
@@ -62,6 +63,15 @@ template<typename type, typename Deleter, typename ...Args>
 std::shared_ptr<type> make_shared_with_deleter(Deleter&& func, Args&& ...args) {
     return std::shared_ptr<type>(new type(std::forward<Args>(args)...), std::forward<Deleter>(func));
 }
+
+template<class T>
+const char* TypeToName() {
+    static const char* s_name = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
+    return s_name;
+}
+
+#define LOCK_GUARD std::lock_guard<std::mutex>
+#define UNIQUE_LOCK std::unique_lock<std::mutex>
 
 }
 

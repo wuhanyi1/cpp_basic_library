@@ -1,0 +1,20 @@
+system:
+    port: 9090
+    value: 22.2
+    array:
+        - 10
+        - 15
+    list:
+        - 17
+        - 18
+    map:
+        value1: 19
+        value2: 20
+    class:
+        - age: 20
+          height: 190
+          name: Tom1
+        
+        - age: 23
+          height: 193
+          name: Tom2

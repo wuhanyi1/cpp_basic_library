@@ -1,8 +1,8 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-26 15:08:04
- * @LastEditTime: 2022-04-29 21:57:20
- * @FilePath: /basic_library/src/common/include/common/error.h
+ * @LastEditTime: 2023-01-08 11:48:35
+ * @FilePath: /cpp_basic_library/src/common/include/common/error.h
  * @Description: 
  * 
  * Copyright (c) 2022 by wuhanyi, All Rights Reserved. 
@@ -22,8 +22,8 @@ namespace why {
 #define LIKELY(x) __builtin_expect(!!(x), 1)
 #define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else
-#define LIKELY(x) x
-#define UNLIKELY(x) x
+#define LIKELY(x) (x)
+#define UNLIKELY(x) (x)
 #endif
 
 #define CHECK_THROW(cond, ...)                          \

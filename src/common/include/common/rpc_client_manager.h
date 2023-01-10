@@ -1,3 +1,13 @@
+/*
+ * @Author: wuhanyi1
+ * @Date: 2022-12-20 21:14:52
+ * @LastEditors: wuhanyi1 874864297@qq.com
+ * @LastEditTime: 2023-01-01 16:13:52
+ * @FilePath: /cpp_basic_library/src/common/include/common/rpc_client_manager.h
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by wuhanyi1 874864297@qq.com, All Rights Reserved. 
+ */
 #ifndef __WHY_RPC_CLIENT_MANAGER_H__
 #define __WHY_RPC_CLIENT_MANAGER_H__
 

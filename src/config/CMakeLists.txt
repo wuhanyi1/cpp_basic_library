@@ -1,4 +1,4 @@
-project(log LANGUAGES CXX)
+project(config LANGUAGES CXX)
 
 # 非 cache 变量，每个文件都加一句
 set(CMAKE_CXX_STANDARD 14)
@@ -11,6 +11,6 @@ add_library(${PROJECT_NAME} SHARED ${source})
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${PROJECT_SOURCE_DIR}/
-        #${why_basic_library_SOURCE_DIR}/src/common/include/
+        # ${why_core_SOURCE_DIR}/log
 )
-target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp common config)
+target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp common)
