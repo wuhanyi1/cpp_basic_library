@@ -33,6 +33,7 @@ void test_fmt_with_StdOutLogAppender() {
 }
 
 int main() {
+    why::ThisThread::SetName("MAIN");
     test_stream_with_StdOutLogAppender();
     test_fmt_with_StdOutLogAppender();
     return 0;

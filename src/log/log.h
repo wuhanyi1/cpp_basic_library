@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-03 20:44:37
- * @LastEditTime: 2023-01-08 11:40:57
+ * @LastEditTime: 2023-02-09 14:43:30
  * @FilePath: /cpp_basic_library/src/log/log.h
  * @Description: 日志模块
  * 
@@ -27,7 +27,8 @@
  */
 #define WHY_LOG_LEVEL_WITH_STREAM(logger, level) \
     if (logger->GetLevel() <= level) \
-        why::LogEventWrap(std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, why::GetCurrentSec(), "TEST")).GetSS()
+        why::LogEventWrap(std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, \
+            0, 0, 0, why::GetCurrentSec(), why::ThisThread::GetName().c_str())).GetSS()
 
 #define WHY_LOG_DEBUG_WITH_STREAM(logger) WHY_LOG_LEVEL_WITH_STREAM(logger, why::LogLevel::DEBUG)
 
@@ -44,7 +45,8 @@
  */
 #define WHY_LOG_LEVEL(logger, level, ...)                                                                        \
     if (level >= logger->GetLevel()) {                                                                                \
-        auto event = std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0, why::GetCurrentSec(), "TEST"); \
+        auto event = std::make_shared<why::LogEvent>(logger, level, __FILE__, __LINE__, 0, 0, 0,                   \
+            why::GetCurrentSec(), why::ThisThread::GetName().c_str());                                              \
         event->Format(__VA_ARGS__);                                                                              \
         logger->Log(event, level);                                                                                    \
     }

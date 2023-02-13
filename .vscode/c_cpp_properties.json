@@ -1,19 +1,19 @@
-// {
-//     "configurations": [
-//         {
-//             "name": "Linux",
-//             "includePath": [
-//                 "${workspaceFolder}/**",
-//                 "${workspaceFolder}/src/log",
-//                 "${workspaceFolder}/src/config",
-//                 "${workspaceFolder}/src/common/include"
-//             ],
-//             "defines": [],
-//             "compilerPath": "/usr/bin/gcc",
-//             "cStandard": "gnu17",
-//             "cppStandard": "gnu++14",
-//             "intelliSenseMode": "linux-gcc-x64"
-//         }
-//     ],
-//     "version": 4
-// }
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/src/log",
+                "${workspaceFolder}/src/config",
+                "${workspaceFolder}/src/common/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}

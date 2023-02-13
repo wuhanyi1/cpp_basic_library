@@ -12,6 +12,8 @@ foreach(TEST_SOURCE ${source})
         target_link_libraries(${TEST_NAME} PRIVATE log pthread)
     elseif(${TEST_NAME} STREQUAL "config_tests")     
         target_link_libraries(${TEST_NAME} PRIVATE why_basic_library)
+    elseif(${TEST_NAME} STREQUAL "thread_tests")
+        target_link_libraries(${TEST_NAME} PRIVATE why_basic_library)
     endif()
     
 endforeach()
