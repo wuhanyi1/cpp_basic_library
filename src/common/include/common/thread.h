@@ -2,7 +2,7 @@
  * @Author: wuhanyi1 874864297@qq.com
  * @Date: 2023-01-11 11:51:45
  * @LastEditors: wuhanyi1 874864297@qq.com
- * @LastEditTime: 2023-02-09 14:41:27
+ * @LastEditTime: 2023-02-15 19:06:18
  * @FilePath: /cpp_basic_library/src/common/include/common/thread.h
  * @Description: 
  * 
@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "noncopyable.h"
-#include "exception.h"
+#include "macro.h"
 #include <condition_variable>
 #include "utils.h"
 #include "mutex.h"
@@ -32,7 +32,7 @@ public:
     template<typename F, typename... Args>
     Thread(F&& func, Args... args, const std::string& name) : m_name(name) {
         m_cb = std::bind(std::forward<F>(func), std::forward<Args>(args)...);
-        int ret = pthread_create(&m_thread, nullptr, &Thread::run, this);
+        int ret = pthread_create(&m_thread, nullptr, Thread::run, this);
         CHECK_THROW(ret == 0, "pthread_create failed, ret = %d", ret);
         m_semaphore.Wait();
     }

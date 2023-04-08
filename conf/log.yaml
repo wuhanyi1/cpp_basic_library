@@ -12,4 +12,3 @@ logs:
             file: /apps/logs/sylar/system.txt
             formatter: "%T%t%T%N%T%F%T"
           - type: StdOutLogAppender
-

@@ -1,6 +1,6 @@
 project(why_sample)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB source CONFIGURE_DEPENDS src/*.cpp)
 

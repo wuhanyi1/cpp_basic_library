@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-26 18:17:59
- * @LastEditTime: 2023-02-09 14:19:40
+ * @LastEditTime: 2023-02-15 14:31:51
  * @FilePath: /cpp_basic_library/src/common/include/common.h
  * @Description: 
  * 
@@ -12,6 +12,7 @@
 
 // #include "common/error.h"
 #include "common/exception.h"
+#include "common/macro.h"
 #include "common/noncopyable.h"
 #include "common/singleton.h"
 #include "common/utils.h"

@@ -1,7 +1,7 @@
 project(common LANGUAGES CXX)
 
 # 非 cache 变量，每个文件都加一句
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB source CONFIGURE_DEPENDS src/*.cpp)    

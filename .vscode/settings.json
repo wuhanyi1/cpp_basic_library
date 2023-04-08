@@ -74,6 +74,9 @@
         "stop_token": "cpp",
         "codecvt": "cpp",
         "csignal": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "complex": "cpp",
+        "coroutine": "cpp",
+        "typeindex": "cpp"
     }
 }

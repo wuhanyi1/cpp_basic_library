@@ -1,7 +1,7 @@
 /*
  * @Author: wuhanyi
  * @Date: 2022-04-29 10:45:10
- * @LastEditTime: 2023-01-02 16:37:46
+ * @LastEditTime: 2023-02-15 14:13:43
  * @FilePath: /cpp_basic_library/src/common/include/common/utils.h
  * @Description: 
  * 
@@ -12,6 +12,7 @@
 #define __WHY_UTILS_H__
 
 #include <cxxabi.h>
+ #include <execinfo.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -34,7 +35,23 @@ uint64_t GetCurrentMS();
 uint64_t GetCurrentUS();
 
 uint64_t GetCurrentNS();
-    
+
+/**
+ * @description: 获取当前的调用栈
+ * @param[out] bt 保存调用栈
+ * @param[in] size 最多返回层数
+ * @param[in] skip 跳过栈顶的层数
+ */
+void Backtrace(std::vector<std::string>& bt, int size = 64, int skip = 1);
+
+/**
+ * @description: 获取当前栈信息的字符串
+ * @param[in] size 栈的最大层数
+ * @param[in] skip 跳过栈顶的层数
+ * @param[in] prefix 栈信息前输出的内容
+ */
+std::string BacktraceToString(int size = 64, int skip = 2, const std::string& prefix = "");
+
 std::string ToUpper(const std::string& name);
 
 std::string ToLower(const std::string& name);
@@ -69,9 +86,6 @@ const char* TypeToName() {
     static const char* s_name = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
     return s_name;
 }
-
-#define LOCK_GUARD std::lock_guard<std::mutex>
-#define UNIQUE_LOCK std::unique_lock<std::mutex>
 
 }
 
